@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+src/job_applications/__init__.py
+src/job_applications/cli.py
+src/job_applications/pipeline.py
+src/job_applications.egg-info/PKG-INFO
+src/job_applications.egg-info/SOURCES.txt
+src/job_applications.egg-info/dependency_links.txt
+src/job_applications.egg-info/requires.txt
+src/job_applications.egg-info/top_level.txt
+tests/test_pipeline.py

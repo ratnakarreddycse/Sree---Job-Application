@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Job Apply Autofill Helper",
+  "version": "0.1.0",
+  "description": "Autofill job application forms using saved profile and recurring answers.",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": [
+    "http://127.0.0.1:8765/*",
+    "https://*.linkedin.com/*",
+    "https://*.indeed.com/*",
+    "https://*.dice.com/*",
+    "https://*.greenhouse.io/*",
+    "https://*.lever.co/*",
+    "https://*.myworkdayjobs.com/*",
+    "https://*.workday.com/*",
+    "https://*.glassdoor.com/*",
+    "https://*.builtin.com/*"
+  ],
+  "action": {
+    "default_title": "Job Autofill",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.linkedin.com/*",
+        "https://*.indeed.com/*",
+        "https://*.dice.com/*",
+        "https://*.greenhouse.io/*",
+        "https://*.lever.co/*",
+        "https://*.myworkdayjobs.com/*",
+        "https://*.workday.com/*",
+        "https://*.glassdoor.com/*",
+        "https://*.builtin.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

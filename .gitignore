@@ -1,0 +1,14 @@
+__pycache__/
+.pytest_cache/
+.venv/
+dist/
+build/
+*.pyc
+
+# Generated daily outputs and runtime logs
+outputs/
+logs/
+tmp_launch_agents/
+
+# Binary resume file (use base_resume.json instead)
+*.docx

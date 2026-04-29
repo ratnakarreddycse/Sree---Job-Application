@@ -1,0 +1,26 @@
+[
+  {
+    "company": "Databricks",
+    "role": "Senior Data Engineer",
+    "status": "new",
+    "notes": "Remote USA. H1B visa transfer supported. Python SQL ETL Spark Databricks AWS"
+  },
+  {
+    "company": "Acme Analytics",
+    "role": "Analytics Engineer",
+    "status": "new",
+    "notes": "US remote. dbt Airflow SQL Python Snowflake"
+  },
+  {
+    "company": "Legacy Finance",
+    "role": "Data Engineer",
+    "status": "new",
+    "notes": "No sponsorship available. US citizen only."
+  },
+  {
+    "company": "Pipeline Labs",
+    "role": "Data Platform Engineer",
+    "status": "new",
+    "notes": "Hybrid NYC. Kafka Spark ETL Python GCP"
+  }
+]

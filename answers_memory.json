@@ -1,0 +1,14 @@
+{
+  "profile": {
+    "email": "ratnakar@example.com",
+    "full_name": "Ratnakar Reddy",
+    "linkedin": "",
+    "location": "",
+    "needs_sponsorship": "Yes",
+    "phone": "",
+    "work_authorization": "H1B"
+  },
+  "questions": {
+    "Are you legally authorized to work in the US?": "Yes"
+  }
+}

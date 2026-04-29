@@ -1,0 +1,68 @@
+{
+  "accepted_records": 4,
+  "action_breakdown": {
+    "apply_now": 3,
+    "skip": 1
+  },
+  "rejected_records": 0,
+  "source_records": 4,
+  "status_breakdown": {
+    "new": 4
+  },
+  "top_recommendations": [
+    {
+      "action": "apply_now",
+      "company": "Databricks",
+      "notes": "Remote USA. H1B visa transfer supported. Python SQL ETL Spark Databricks AWS",
+      "reasons": [
+        "Strong role-title match",
+        "Matched required keywords: 3/3",
+        "Matched preferred keywords: 3",
+        "Preferred location signal",
+        "Positive visa-support signal"
+      ],
+      "role": "Senior Data Engineer",
+      "score": 103,
+      "status": "new"
+    },
+    {
+      "action": "apply_now",
+      "company": "Acme Analytics",
+      "notes": "US remote. dbt Airflow SQL Python Snowflake",
+      "reasons": [
+        "Strong role-title match",
+        "Matched required keywords: 2/3",
+        "Matched preferred keywords: 3",
+        "Preferred location signal"
+      ],
+      "role": "Analytics Engineer",
+      "score": 79,
+      "status": "new"
+    },
+    {
+      "action": "apply_now",
+      "company": "Pipeline Labs",
+      "notes": "Hybrid NYC. Kafka Spark ETL Python GCP",
+      "reasons": [
+        "Strong role-title match",
+        "Matched required keywords: 2/3",
+        "Matched preferred keywords: 3"
+      ],
+      "role": "Data Platform Engineer",
+      "score": 71,
+      "status": "new"
+    },
+    {
+      "action": "skip",
+      "company": "Legacy Finance",
+      "notes": "No sponsorship available. US citizen only.",
+      "reasons": [
+        "Rejected: role appears to disallow visa sponsorship"
+      ],
+      "role": "Data Engineer",
+      "score": 0,
+      "status": "new"
+    }
+  ],
+  "total_records": 4
+}

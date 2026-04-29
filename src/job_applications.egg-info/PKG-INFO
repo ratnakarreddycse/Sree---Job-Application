@@ -1,0 +1,50 @@
+Metadata-Version: 2.4
+Name: job-applications
+Version: 0.1.0
+Summary: Starter pipeline for managing job applications
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+
+# Job Applications
+
+Starter workspace for a job-application pipeline in Python.
+
+## Project layout
+
+- `src/job_applications/`: pipeline package and CLI entry point
+- `tests/`: focused tests for pipeline behavior
+- `.github/workflows/ci.yml`: basic CI for tests
+
+## Quick start
+
+```bash
+/usr/bin/python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e .[dev]
+pytest
+python -m job_applications.cli --input applications.json
+```
+
+## Input format
+
+The CLI expects a JSON array of objects with at least:
+
+- `company`
+- `role`
+- `status`
+
+Example:
+
+```json
+[
+  {
+    "company": "Contoso",
+    "role": "Software Engineer",
+    "status": "draft",
+    "notes": "Referral pending"
+  }
+]
+```

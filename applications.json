@@ -1,0 +1,37 @@
+[
+  {
+    "company": "Databricks",
+    "role": "Senior Data Engineer",
+    "status": "new",
+    "apply_url": "https://boards.greenhouse.io/databricks",
+    "notes": "Remote USA. H1B visa transfer supported. We are looking for a Senior Data Engineer to build and scale our data platform. Requirements: Python, SQL, ETL, Spark, Databricks, Delta Lake, Apache Kafka, Airflow, dbt, AWS. 5+ years of experience building production data pipelines. Experience with cloud data warehouses (Snowflake or BigQuery). Strong understanding of distributed computing."
+  },
+  {
+    "company": "Snowflake",
+    "role": "Senior Data Engineer",
+    "status": "new",
+    "apply_url": "https://snowflake.wd1.myworkdayjobs.com/en-US/SnowflakeCareer",
+    "notes": "Remote US. Visa sponsorship available for qualified candidates. Looking for a Senior Data Engineer with deep expertise in Snowflake, dbt, Python, SQL, and ETL pipeline development. You will design and build scalable data pipelines, manage data models, and work closely with analytics teams. Experience with Airflow, GCP or AWS required. Strong Python and SQL skills essential."
+  },
+  {
+    "company": "Stripe",
+    "role": "Data Platform Engineer",
+    "status": "new",
+    "apply_url": "https://jobs.lever.co/stripe",
+    "notes": "Remote USA. H1B transfer welcome. Build the foundational data infrastructure that powers Stripe's analytics. Skills required: Python, SQL, Spark, Kafka, Flink, ETL, Airflow, dbt, AWS, Terraform. 4+ years in data engineering. Experience with real-time streaming pipelines. Strong knowledge of data modeling and warehouse design (Snowflake, BigQuery, Redshift)."
+  },
+  {
+    "company": "Confluent",
+    "role": "Analytics Engineer",
+    "status": "new",
+    "apply_url": "https://boards.greenhouse.io/confluent",
+    "notes": "US Remote. OPT/H1B sponsorship available. We need an Analytics Engineer to transform raw data into clean, structured models. Core stack: dbt, Snowflake, Python, SQL, Airflow. You will own the data transformation layer, write SQL models in dbt, and build data pipelines that serve business intelligence teams. Experience with Looker or Tableau a plus. ETL knowledge required."
+  },
+  {
+    "company": "Palantir",
+    "role": "Senior Data Engineer",
+    "status": "new",
+    "apply_url": "https://jobs.lever.co/palantir",
+    "notes": "No sponsorship available. US citizen or green card required. Python, Spark, AWS, ETL experience required."
+  }
+]

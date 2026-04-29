@@ -1,0 +1,47 @@
+{
+  "input_path": "applications.json",
+  "base_resume": "base_resume.json",
+  "daily_output_root": "outputs",
+  "top": 25,
+  "rss_urls": [
+    "https://remotive.com/remote-jobs/feed?category=data",
+    "https://jobicy.com/?feed=job_feed&job_categories=data-science&job_types=full-time",
+    "https://weworkremotely.com/categories/remote-programming-jobs.rss"
+  ],
+  "portals": {
+    "linkedin": [
+      "https://www.linkedin.com/jobs/search/?keywords=Data%20Engineer&location=United%20States&f_WT=2&sortBy=DD",
+      "https://www.linkedin.com/jobs/search/?keywords=Senior%20Data%20Engineer&location=United%20States&f_WT=2&sortBy=DD",
+      "https://www.linkedin.com/jobs/search/?keywords=Analytics%20Engineer&location=United%20States&f_WT=2&sortBy=DD",
+      "https://www.linkedin.com/jobs/search/?keywords=Data%20Platform%20Engineer&location=United%20States&sortBy=DD",
+      "https://www.linkedin.com/jobs/search/?keywords=ETL%20Engineer&location=United%20States&sortBy=DD"
+    ],
+    "indeed": [
+      "https://www.indeed.com/jobs?q=data+engineer+sponsorship&l=United+States&sort=date",
+      "https://www.indeed.com/jobs?q=senior+data+engineer+h1b&l=United+States&sort=date",
+      "https://www.indeed.com/jobs?q=analytics+engineer&l=United+States&sort=date&sc=0kf%3Aattr(DSQF7)%3B",
+      "https://www.indeed.com/jobs?q=data+platform+engineer&l=United+States&sort=date"
+    ],
+    "dice": [
+      "https://www.dice.com/jobs?q=Data+Engineer&location=United+States&filters.employmentType=FULLTIME&filters.workplaceTypes=Remote&language=en",
+      "https://www.dice.com/jobs?q=Senior+Data+Engineer&location=United+States&filters.employmentType=FULLTIME&language=en",
+      "https://www.dice.com/jobs?q=Analytics+Engineer&location=United+States&filters.employmentType=FULLTIME&language=en",
+      "https://www.dice.com/jobs?q=Spark+ETL+Engineer&location=United+States&filters.employmentType=FULLTIME&language=en"
+    ],
+    "glassdoor": [
+      "https://www.glassdoor.com/Job/united-states-data-engineer-jobs-SRCH_IL.0,13_IN1_KO14,27.htm?sortBy=date_desc",
+      "https://www.glassdoor.com/Job/united-states-analytics-engineer-jobs-SRCH_IL.0,13_IN1_KO14,32.htm?sortBy=date_desc"
+    ],
+    "myvisajobs": [
+      "https://www.myvisajobs.com/Search-Visa-Sponsor.aspx?T=J&KW=Data+Engineer&L=United+States",
+      "https://www.myvisajobs.com/Search-Visa-Sponsor.aspx?T=J&KW=Analytics+Engineer&L=United+States"
+    ],
+    "builtin": [
+      "https://builtin.com/jobs/data-engineering?remote=true",
+      "https://builtin.com/jobs/data-engineering"
+    ],
+    "greenhouse": [],
+    "lever": [],
+    "workday": []
+  }
+}
