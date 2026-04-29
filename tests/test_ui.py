@@ -1,11 +1,14 @@
 import json
 from pathlib import Path
+from unittest.mock import patch
 
 from job_applications.ui import (
     UiConfig,
+    _SCRAPABLE_ATS_HOSTS,
     _find_latest_manifest,
     _looks_like_listing_url,
     _pick_best_link_from_html,
+    _resolve_direct_apply_url,
     _safe_open_path,
     build_pipeline_command,
     load_ui_config,
@@ -182,3 +185,45 @@ def test_pick_best_link_from_html_prefers_role_matching_direct_link() -> None:
     )
 
     assert best == "https://example.com/jobs/98765"
+
+
+def test_resolve_direct_apply_url_passes_through_non_ats_hosts() -> None:
+    """Company career sites (Databricks, Snowflake, Stripe, Confluent) must
+    never be scraped — they are JS SPAs and urlopen returns skeleton HTML that
+    causes the scraper to pick product pages or wrong roles."""
+    non_ats_urls = [
+        ("https://www.databricks.com/company/careers/open-positions", "Senior Data Engineer", "Databricks"),
+        ("https://careers.snowflake.com/us/en/search-results", "Senior Data Engineer", "Snowflake"),
+        ("https://stripe.com/jobs/search", "Data Platform Engineer", "Stripe"),
+        ("https://careers.confluent.io/jobs", "Analytics Engineer", "Confluent"),
+    ]
+    for url, role, company in non_ats_urls:
+        # urlopen must NOT be called — if it were, we'd get a network error in tests
+        with patch("job_applications.ui.urlopen", side_effect=AssertionError("urlopen must not be called for non-ATS hosts")):
+            result = _resolve_direct_apply_url(url, role=role, company=company)
+        assert result == url, f"Expected passthrough for {url}, got {result}"
+
+
+def test_resolve_direct_apply_url_scrapes_only_greenhouse_and_lever() -> None:
+    """ATS board roots (Greenhouse/Lever) are server-rendered and should be scraped."""
+    ats_urls = [
+        "https://boards.greenhouse.io/somecompany",
+        "https://job-boards.greenhouse.io/somecompany",
+        "https://jobs.lever.co/somecompany",
+    ]
+    for url in ats_urls:
+        host = url.split("/")[2]
+        assert host in _SCRAPABLE_ATS_HOSTS, f"{host} should be in _SCRAPABLE_ATS_HOSTS"
+
+
+def test_scrapable_ats_hosts_excludes_company_career_sites() -> None:
+    """Company-owned career domains must never be in the scrapable set."""
+    forbidden = [
+        "www.databricks.com",
+        "careers.snowflake.com",
+        "stripe.com",
+        "careers.confluent.io",
+        "snowflake.wd1.myworkdayjobs.com",
+    ]
+    for host in forbidden:
+        assert host not in _SCRAPABLE_ATS_HOSTS, f"{host} must NOT be scrapable"

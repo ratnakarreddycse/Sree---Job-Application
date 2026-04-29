@@ -182,13 +182,7 @@ def _looks_like_listing_url(url_str: str) -> bool:
     # boards.greenhouse.io/<company>  or  job-boards.greenhouse.io/<company>  or
     # jobs.lever.co/<company> are listing pages (one path segment = company slug,
     # no job ID). They ARE server-rendered so the HTML scraper can find role links.
-    _ATS_BOARD_HOSTS = {
-        "boards.greenhouse.io",
-        "boards.eu.greenhouse.io",
-        "job-boards.greenhouse.io",
-        "jobs.lever.co",
-    }
-    if netloc in _ATS_BOARD_HOSTS:
+    if netloc in _SCRAPABLE_ATS_HOSTS:
         segments = [s for s in path.split("/") if s]
         # Listing root = just the company slug (≤1 segment, no numeric job ID)
         if len(segments) <= 1:
@@ -234,6 +228,18 @@ def _looks_like_listing_url(url_str: str) -> bool:
         return False
 
     return False
+
+
+# Hosts whose job board HTML is server-rendered and can be reliably scraped with
+# urlopen. Modern company career sites (databricks.com, careers.snowflake.com,
+# stripe.com, careers.confluent.io, etc.) are JavaScript SPAs — urlopen returns
+# skeleton HTML, causing the scraper to pick navigation links or the wrong role.
+_SCRAPABLE_ATS_HOSTS: frozenset[str] = frozenset({
+    "boards.greenhouse.io",
+    "boards.eu.greenhouse.io",
+    "job-boards.greenhouse.io",
+    "jobs.lever.co",
+})
 
 
 def _normalize_words(value: str) -> list[str]:
@@ -295,6 +301,13 @@ def _pick_best_link_from_html(listing_url: str, html: str, role: str, company: s
 
 
 def _resolve_direct_apply_url(url_str: str, role: str, company: str) -> str:
+    # Only attempt HTML scraping for known server-rendered ATS boards.
+    # For all other URLs (company career sites), return as-is so the user
+    # lands on the correct search/listing page rather than a wrong page.
+    parsed_host = urlparse(url_str).netloc.lower()
+    if parsed_host not in _SCRAPABLE_ATS_HOSTS:
+        return url_str
+
     if not _looks_like_listing_url(url_str):
         return url_str
 
