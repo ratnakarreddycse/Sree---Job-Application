@@ -137,21 +137,29 @@ def test_safe_open_path_rejects_missing_file(tmp_path: Path) -> None:
 
 
 def test_looks_like_listing_url_identifies_generic_career_pages() -> None:
-    # Old-style listing pages
+    # Current career listing pages (working URLs as of 2026-04)
     assert _looks_like_listing_url("https://www.databricks.com/company/careers/open-positions") is True
+    assert _looks_like_listing_url("https://careers.snowflake.com/us/en/search-results") is True
+    assert _looks_like_listing_url("https://stripe.com/jobs/search") is True
+    assert _looks_like_listing_url("https://careers.confluent.io/jobs") is True
+
+    # Search-query listing pages
     assert _looks_like_listing_url("https://stripe.com/jobs/search?query=data+engineer") is True
     assert _looks_like_listing_url("https://careers.confluent.io/jobs/?search=analytics+engineer") is True
 
-    # Greenhouse / Lever board root pages ARE listing pages
+    # Legacy Greenhouse / Lever board root pages are still listing pages
     assert _looks_like_listing_url("https://boards.greenhouse.io/databricks") is True
     assert _looks_like_listing_url("https://boards.greenhouse.io/confluent") is True
+    assert _looks_like_listing_url("https://job-boards.greenhouse.io/confluent") is True
     assert _looks_like_listing_url("https://jobs.lever.co/stripe") is True
 
     # Workday job sites are listing pages
     assert _looks_like_listing_url("https://snowflake.wd1.myworkdayjobs.com/en-US/SnowflakeCareer") is True
 
-    # Direct posting URLs (have job IDs) are NOT listing pages
+    # Direct posting URLs with long numeric IDs are NOT listing pages
     assert _looks_like_listing_url("https://boards.greenhouse.io/databricks/jobs/1234567") is False
+    assert _looks_like_listing_url("https://www.databricks.com/company/careers/engineering/senior-data-engineer-8229672002") is False
+    assert _looks_like_listing_url("https://careers.snowflake.com/us/en/job/SNCOUS4414B8D62C59/Senior-Solution-Engineer") is False
     assert _looks_like_listing_url("https://jobicy.com/jobs/142241-senior-data-engineer") is False
     assert _looks_like_listing_url("https://weworkremotely.com/remote-jobs/ataccama-senior-back-end-engineer") is False
 

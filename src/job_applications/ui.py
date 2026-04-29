@@ -171,11 +171,23 @@ def _looks_like_listing_url(url_str: str) -> bool:
     path = parsed.path.lower().rstrip("/")
     query = parse_qs(parsed.query.lower())
 
+    # ── Specific job posting: path contains a long numeric or hex-heavy ID ─────
+    # e.g. /company/careers/engineering/senior-data-engineer-8229672002
+    #      /us/en/job/SNCOUS4414B8D6.../Senior-Solution-Engineer
+    # These are never listing pages regardless of other tokens in the path.
+    if re.search(r"\d{5,}", path):
+        return False
+
     # ── Server-rendered ATS board root pages ──────────────────────────────────
-    # boards.greenhouse.io/<company>  or  jobs.lever.co/<company>  are listing
-    # pages (one path segment = company slug, no job ID). They ARE server-rendered
-    # so the HTML scraper can reliably find the matching role link.
-    _ATS_BOARD_HOSTS = {"boards.greenhouse.io", "boards.eu.greenhouse.io", "jobs.lever.co"}
+    # boards.greenhouse.io/<company>  or  job-boards.greenhouse.io/<company>  or
+    # jobs.lever.co/<company> are listing pages (one path segment = company slug,
+    # no job ID). They ARE server-rendered so the HTML scraper can find role links.
+    _ATS_BOARD_HOSTS = {
+        "boards.greenhouse.io",
+        "boards.eu.greenhouse.io",
+        "job-boards.greenhouse.io",
+        "jobs.lever.co",
+    }
     if netloc in _ATS_BOARD_HOSTS:
         segments = [s for s in path.split("/") if s]
         # Listing root = just the company slug (≤1 segment, no numeric job ID)
@@ -198,12 +210,20 @@ def _looks_like_listing_url(url_str: str) -> bool:
         "/company/careers",
         "/company/careers/open-positions",
         "/search-results",
+        "/us/en/search-results",
     }
     if path in listing_paths:
         return True
 
-    listing_tokens = ["search", "open-positions", "open_positions", "careers"]
+    # Tokens that indicate a search/listing page rather than a specific posting.
+    # Note: "careers" alone is intentionally excluded here — many direct job
+    # posting URLs contain "/careers/" as a path prefix (e.g. Databricks).
+    listing_tokens = ["search", "open-positions", "open_positions"]
     if any(token in path for token in listing_tokens):
+        return True
+
+    # Paths that are just "/careers" or "/careers/" at depth ≤1 are listings.
+    if re.match(r"^/careers/?$", path):
         return True
 
     if any(key in query for key in ["search", "query", "keywords", "department", "location"]):
