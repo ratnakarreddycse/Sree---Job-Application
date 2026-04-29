@@ -249,7 +249,8 @@ def _pick_best_link_from_html(listing_url: str, html: str, role: str, company: s
     company_words = set(_normalize_words(company))
     listing_path = urlparse(listing_url).path.lower().rstrip("/")
     listing_host = urlparse(listing_url).netloc.lower()
-    best: tuple[int, str] | None = None
+    best_score: int = 0
+    best_url: str | None = None
 
     for raw_href, raw_text in anchors:
         href = unescape(raw_href).strip()
@@ -284,12 +285,13 @@ def _pick_best_link_from_html(listing_url: str, html: str, role: str, company: s
         if score <= 0:
             continue
 
-        if best is None or score > best[0]:
-            best = (score, absolute_url)
+        if best_url is None or score > best_score:
+            best_score = score
+            best_url = absolute_url
 
-    if best is None:
+    if best_url is None:
         return None
-    return best[1]
+    return best_url
 
 
 def _resolve_direct_apply_url(url_str: str, role: str, company: str) -> str:
