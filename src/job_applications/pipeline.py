@@ -35,25 +35,88 @@ class CandidateProfile:
 def default_profile() -> CandidateProfile:
     return CandidateProfile(
         target_titles=[
+            # Tier 1 — Core seniority
             "data engineer",
             "senior data engineer",
-            "analytics engineer",
+            "staff data engineer",
+            "principal data engineer",
+            "lead data engineer",
+            # Platform / infrastructure
             "data platform engineer",
+            "data platform architect",
+            "data infrastructure engineer",
+            "cloud data engineer",
+            "enterprise data engineer",
+            # Warehouse / migration
+            "data warehouse engineer",
+            "data modernization engineer",
+            "data migration engineer",
             "etl engineer",
+            # Analytics engineering
+            "analytics engineer",
+            "senior analytics engineer",
+            "data analytics engineer",
+            # Microsoft Fabric — both certs (DP-600 + DP-700), thin talent pool globally
+            "microsoft fabric engineer",
+            "fabric data engineer",
+            "fabric analytics engineer",
+            "analytics platform engineer",
+            # Cloud-specific titles
+            "azure data engineer",
+            "gcp data engineer",
+            "aws data engineer",
+            "bigquery data engineer",
+            "cloud data architect",
+            "data solutions architect",
+            "data architecture engineer",
+            # Healthcare domain — HIPAA-gated, Humana experience
+            "healthcare data engineer",
+            "clinical data engineer",
+            "health data platform engineer",
+            "payer data engineer",
+            # Fintech / banking domain — Wells Fargo experience
+            "financial data engineer",
+            "fintech data engineer",
+            "banking data engineer",
+            # Streaming / real-time
+            "streaming data engineer",
+            "real-time data engineer",
+            # Lakehouse / Databricks
+            "databricks engineer",
+            "lakehouse engineer",
+            "delta lake engineer",
         ],
-        required_keywords=["python", "sql", "etl"],
+        # All 4 appear in virtually every senior DE JD matching this skill set
+        required_keywords=["python", "sql", "spark", "etl"],
         preferred_keywords=[
-            "airflow",
-            "dbt",
-            "spark",
-            "kafka",
-            "snowflake",
-            "databricks",
-            "aws",
-            "gcp",
-            "azure",
+            # Orchestration & transformation
+            "airflow", "dbt", "kafka", "nifi",
+            # Azure — strongest cert profile (DP-203, DP-600, DP-700) + 3 Azure roles
+            "azure", "synapse", "adf", "azure data factory", "adls", "event hubs", "cosmos db",
+            # GCP — Humana + Wells Fargo cloud migration to BigQuery
+            "gcp", "bigquery", "dataflow", "dataproc", "cloud composer",
+            # AWS — dedicated full role at CONTUS (Glue/EMR/Redshift/Kinesis)
+            "aws", "glue", "redshift", "emr", "kinesis", "athena",
+            # Databricks / lakehouse
+            "databricks", "delta lake", "lakehouse", "unity catalog", "snowflake",
+            # Microsoft Fabric — DP-600 + DP-700 certification, exploding demand
+            "microsoft fabric", "fabric", "onelake",
+            # Enterprise differentiators — Teradata + Ab Initio (rare, high-pay premium)
+            "teradata", "ab initio", "scala", "pyspark",
+            # Infrastructure / DevOps
+            "kubernetes", "terraform", "docker",
+            # Healthcare domain signals — HIPAA-regulated, claims/eligibility/provider data
+            "healthcare", "hipaa", "claims", "eligibility", "payer", "fhir", "hl7",
+            # Fintech domain signals — regulatory, risk, compliance at Wells Fargo
+            "fintech", "financial services", "banking", "regulatory", "compliance",
+            # Seniority / scope signals
+            "migration", "modernization", "data warehouse", "enterprise", "hybrid",
         ],
-        preferred_locations=["remote", "usa", "united states"],
+        preferred_locations=[
+            "remote", "usa", "united states",
+            "new york", "california", "texas", "washington",
+            "illinois", "colorado", "massachusetts", "georgia", "florida",
+        ],
         require_visa_support=True,
     )
 
@@ -175,5 +238,5 @@ def run_pipeline(
         rejected_records=rejected_records,
         status_breakdown=status_breakdown,
         action_breakdown=action_breakdown,
-        top_recommendations=scored_records[: max(top_k, 0)],
+        top_recommendations=scored_records if top_k <= 0 else scored_records[:top_k],
     )

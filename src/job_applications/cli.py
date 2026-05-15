@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import re
 import sys
 from datetime import date
@@ -12,7 +13,16 @@ from urllib.parse import parse_qs, urlparse
 
 from job_applications.drafting import write_application_drafts
 from job_applications.health import build_outputs_health_report
-from job_applications.ingestion import dedupe_records, fetch_rss_records, load_records_from_file
+from job_applications.ingestion import (
+    dedupe_records,
+    fetch_ats_records,
+    fetch_jsearch_records,
+    fetch_rss_records,
+    fetch_smartrecruiters_records,
+    fetch_workday_records,
+    load_records_from_file,
+    merge_duplicate_records,
+)
 from job_applications.pipeline import CandidateProfile, default_profile, run_pipeline
 from job_applications.scheduler import (
     build_daily_program_args,
@@ -39,6 +49,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--rss-limit", type=int, default=25, help="Max items to ingest per RSS feed")
     parser.add_argument("--rss-status", default="new", help="Default status for RSS-ingested records")
+    parser.add_argument(
+        "--portal-config",
+        default="portal_config.json",
+        help="Path to portal_config.json containing ats_boards configuration",
+    )
     parser.add_argument("--output", help="Optional JSON output path for the full summary")
     parser.add_argument("--export-csv", help="Optional CSV output path for top recommendations")
     parser.add_argument("--drafts-dir", help="Optional directory to write per-job markdown drafts")
@@ -110,7 +125,7 @@ def build_parser() -> argparse.ArgumentParser:
         default=1,
         help="How many days old output can be and still be considered fresh",
     )
-    parser.add_argument("--top", type=int, default=15, help="Number of top recommendations to keep")
+    parser.add_argument("--top", type=int, default=0, help="Number of top recommendations to keep (0 = all)")
     parser.add_argument(
         "--no-dedupe",
         action="store_true",
@@ -225,6 +240,18 @@ def _score_apply_url_specificity(url: str) -> int:
     if re.search(r"\d", path):
         score += 1
 
+    # Reward ATS job ID query parameters (Greenhouse gh_jid, Workday jobId, etc.)
+    if any(key in query for key in ["gh_jid", "job_id", "jobid", "jid"]):
+        score += 4
+
+    # Reward numeric job IDs in the query string (catches gh_jid=8486738002 etc.)
+    if re.search(r"\d{5,}", parsed.query):
+        score += 3
+
+    # Reward UUID patterns in the path (Ashby, Lever use /slug/UUID format)
+    if re.search(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", path):
+        score += 4
+
     return score
 
 
@@ -300,25 +327,148 @@ def main() -> None:
         print(json.dumps({"path": str(removed_path), "uninstalled": True}, indent=2, sort_keys=True))
         return
 
-    if not args.input and not args.rss_url:
-        raise SystemExit("Provide at least one source: --input or --rss-url")
+    if not args.input and not args.rss_url and not args.portal_config:
+        raise SystemExit("Provide at least one source: --input, --rss-url, or --portal-config")
     if args.launchd_hour < 0 or args.launchd_hour > 23:
         raise SystemExit("--launchd-hour must be in the range 0..23")
     if args.launchd_minute < 0 or args.launchd_minute > 59:
         raise SystemExit("--launchd-minute must be in the range 0..59")
 
     records: list[dict[str, str]] = []
+    seed_records: list[dict[str, str]] = []
     if args.input:
         input_path = Path(args.input)
-        records.extend(load_records_from_file(input_path))
+        seed_records = load_records_from_file(input_path)
+        records.extend(seed_records)
 
     if args.rss_url:
         records.extend(fetch_rss_records(args.rss_url, limit_per_feed=args.rss_limit, default_status=args.rss_status))
 
+    if args.portal_config:
+        portal_cfg_path = Path(args.portal_config)
+        if portal_cfg_path.exists():
+            try:
+                portal_cfg = json.loads(portal_cfg_path.read_text(encoding="utf-8"))
+                ats_boards = portal_cfg.get("ats_boards", [])
+                if ats_boards:
+                    ats_records = fetch_ats_records(ats_boards, default_status=args.rss_status)
+                    # Enrich ATS records with notes from matching seed records (same company)
+                    # so they score well on keyword/visa matching instead of just "Source: Greenhouse/..."
+                    seed_notes_by_company: dict[str, str] = {}
+                    for sr in seed_records:
+                        cname = sr.get("company", "").strip().lower()
+                        notes = sr.get("notes", "").strip()
+                        if cname and notes:
+                            seed_notes_by_company[cname] = notes
+                    for ar in ats_records:
+                        cname = ar.get("company", "").strip().lower()
+                        if cname in seed_notes_by_company:
+                            ar["notes"] = seed_notes_by_company[cname] + " " + ar["notes"]
+                    records.extend(ats_records)
+
+                # --- Workday boards (free, no auth) ---
+                workday_boards = portal_cfg.get("workday_boards", [])
+                if workday_boards:
+                    records.extend(
+                        fetch_workday_records(workday_boards, default_status=args.rss_status)
+                    )
+
+                # --- SmartRecruiters boards (free, no auth) ---
+                sr_boards = portal_cfg.get("smartrecruiters_boards", [])
+                if sr_boards:
+                    records.extend(
+                        fetch_smartrecruiters_records(sr_boards, default_status=args.rss_status)
+                    )
+
+                # --- JSearch API (LinkedIn / Indeed / Glassdoor / ZipRecruiter / Dice) ---
+                jsearch_queries = portal_cfg.get("jsearch_queries", [])
+                if jsearch_queries:
+                    jsearch_api_key = os.environ.get("JSEARCH_API_KEY", "")
+                    if jsearch_api_key:
+                        records.extend(
+                            fetch_jsearch_records(
+                                jsearch_queries,
+                                jsearch_api_key,
+                                default_status=args.rss_status,
+                            )
+                        )
+                    else:
+                        print(
+                            "[cli] JSEARCH_API_KEY not set; skipping JSearch "
+                            "(covers LinkedIn/Glassdoor/ZipRecruiter/Dice — set the env var for full coverage)",
+                            file=sys.stderr,
+                        )
+
+            except (json.JSONDecodeError, OSError) as exc:
+                print(f"[cli] warning: could not read portal config {args.portal_config!r}: {exc}", file=sys.stderr)
+
     if not args.no_dedupe:
+        records = merge_duplicate_records(records)
         records = dedupe_records(records)
 
+    # Apply role blocklist — remove records whose title contains any blocked pattern.
+    blocked_role_patterns: list[str] = []
+    if args.portal_config:
+        portal_cfg_path = Path(args.portal_config)
+        if portal_cfg_path.exists():
+            try:
+                _pcfg = json.loads(portal_cfg_path.read_text(encoding="utf-8"))
+                blocked_role_patterns = [p.lower() for p in _pcfg.get("blocked_role_patterns", []) if str(p).strip()]
+            except (json.JSONDecodeError, OSError):
+                pass
+
+    if blocked_role_patterns:
+        before = len(records)
+        records = [
+            r for r in records
+            if not any(pat in r.get("role", "").lower() for pat in blocked_role_patterns)
+        ]
+        filtered = before - len(records)
+        if filtered:
+            print(f"[cli] role filter: removed {filtered} records matching blocked patterns", file=sys.stderr)
+
     best_apply_urls = _build_best_apply_url_map(records)
+
+    # Build a company -> [(role, url, location)] map of direct posting URLs from ATS/RSS records.
+    # Used to upgrade seed records that have listing-page URLs, matching by title overlap.
+    _ROLE_STOP_WORDS = {"senior", "staff", "principal", "lead", "jr", "junior", "associate",
+                        "the", "a", "an", "of", "and", "or", "in", "at", "for", "to", "ii", "iii"}
+    ats_direct_by_company: dict[str, list[tuple[str, str, str]]] = {}
+    for rec_item in records:
+        url = rec_item.get("apply_url", "").strip()
+        if not url or _score_apply_url_specificity(url) <= 0:
+            continue
+        cname = rec_item.get("company", "").strip().lower()
+        role = rec_item.get("role", "").strip()
+        location = rec_item.get("location", "").strip()
+        if not cname:
+            continue
+        ats_direct_by_company.setdefault(cname, []).append((role, url, location))
+
+    _US_LOCATION_TERMS = {"united states", "remote", "california", "new york", "washington",
+                          "texas", "illinois", "colorado", "massachusetts", "georgia", "virginia",
+                          "north carolina", "new jersey", "florida", "seattle", "san francisco",
+                          "mountain view", "bellevue", "new york city", "chicago", "austin", "denver"}
+
+    def _best_direct_url_for_role(company: str, seed_role: str) -> str | None:
+        """Return the direct ATS URL whose role best matches seed_role by word overlap.
+        Prefers US/Remote locations over international ones to avoid wrong-country matches."""
+        candidates = ats_direct_by_company.get(company.strip().lower(), [])
+        if not candidates:
+            return None
+        seed_words = {w.lower() for w in re.split(r"[\s/,()-]+", seed_role) if w.lower() not in _ROLE_STOP_WORDS and len(w) > 2}
+        best_url, best_overlap, best_loc_score = None, -1, -1
+        for role, url, location in candidates:
+            role_words = {w.lower() for w in re.split(r"[\s/,()-]+", role) if w.lower() not in _ROLE_STOP_WORDS and len(w) > 2}
+            overlap = len(seed_words & role_words)
+            url_score = _score_apply_url_specificity(url)
+            loc_lower = location.lower()
+            loc_score = 1 if any(term in loc_lower for term in _US_LOCATION_TERMS) else 0
+            # Rank by: overlap first, then US location preference, then URL specificity
+            if (overlap, loc_score, url_score) > (best_overlap, best_loc_score, _score_apply_url_specificity(best_url or "")):
+                best_url, best_overlap, best_loc_score = url, overlap, loc_score
+        # Only upgrade if there are at least 2 meaningful words in common (avoids "engineer" alone matching any engineering role)
+        return best_url if best_overlap >= 2 else None
 
     profile = CandidateProfile(
         target_titles=_split_csv_values(args.target_titles),
@@ -367,6 +517,11 @@ def main() -> None:
                 or best_apply_urls.get(normalized_key)
                 or _extract_apply_url(str(rec.get("notes", "")))
             ) or None
+            # Upgrade listing-page URLs to the best matching direct posting URL (by title overlap).
+            if apply_url and _score_apply_url_specificity(apply_url) <= 0:
+                role_direct = _best_direct_url_for_role(key[0], key[1])
+                if role_direct:
+                    apply_url = role_direct
             manifest_jobs.append({
                 "rank": idx,
                 "company": str(rec.get("company", "")),
@@ -383,6 +538,21 @@ def main() -> None:
             from job_applications.resume_tailor import load_base_resume, tailor_resume, write_tailored_resume
             from job_applications.drafting import _slugify  # type: ignore[attr-defined]
             base_resume_obj = load_base_resume(args.base_resume)
+
+            # Persistent resume store: resumes/<YYYY-MM-DD>/ — flushed daily
+            resumes_root = Path(args.daily_output_root).parent / "resumes"
+            resumes_daily_dir = resumes_root / run_date.isoformat()
+            resumes_daily_dir.mkdir(parents=True, exist_ok=True)
+            # Delete previous date dirs so only today's resumes are kept
+            for old_dir in resumes_root.iterdir():
+                if old_dir.is_dir() and old_dir.name != run_date.isoformat():
+                    import shutil
+                    shutil.rmtree(old_dir, ignore_errors=True)
+
+            # Load existing index (so we can merge/update)
+            index_path = resumes_root / "index.json"
+            resume_index: dict[str, object] = {"generated_on": run_date.isoformat(), "resumes": {}}
+
             tailored_count = 0
             for manifest_job, rec in zip(manifest_jobs, summary.top_recommendations):
                 if str(rec.get("action", "")) not in {"apply_now", "review_fast"}:
@@ -394,12 +564,34 @@ def main() -> None:
                 company = str(rec.get("company", "company"))
                 tailored = tailor_resume(base_resume_obj, jd_text, role, company)
                 slug = _slugify(f"{company}_{role}")
+
+                # Write to daily drafts dir (for UI/drafts view)
                 resume_path = Path(drafts_dir) / f"resume_{slug}.md"
                 write_tailored_resume(tailored, str(resume_path))
                 manifest_job["resume_file"] = str(resume_path.resolve())
                 manifest_job["keyword_match_score"] = tailored.keyword_match_score
+
+                # Write to persistent resumes store
+                persistent_path = resumes_daily_dir / f"{slug}.md"
+                write_tailored_resume(tailored, str(persistent_path))
+
+                # Update resume index (pointer registry)
+                resume_index["resumes"][slug] = {  # type: ignore[index]
+                    "company": company,
+                    "role": role,
+                    "score": manifest_job.get("score", 0),
+                    "keyword_match_score": tailored.keyword_match_score,
+                    "apply_url": manifest_job.get("apply_url", ""),
+                    "resume_path": str(persistent_path.relative_to(Path(args.daily_output_root).parent)),
+                    "date": run_date.isoformat(),
+                }
+
                 tailored_count += 1
+
+            # Write index.json at resumes root
+            index_path.write_text(json.dumps(resume_index, indent=2, sort_keys=False), encoding="utf-8")
             payload["tailored_resumes_written"] = tailored_count
+            payload["resume_index"] = str(index_path)
 
         # Write manifest so the UI can load the correct resume per job automatically
         manifest: dict[str, object] = {

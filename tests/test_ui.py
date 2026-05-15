@@ -20,7 +20,7 @@ def test_load_ui_config_uses_defaults_when_missing(tmp_path: Path) -> None:
 
     assert config.input_path is None
     assert config.daily_output_root == "outputs"
-    assert "linkedin" in config.portals
+    assert config.top == 0
 
 
 def test_load_ui_config_reads_portals(tmp_path: Path) -> None:
@@ -30,11 +30,7 @@ def test_load_ui_config_reads_portals(tmp_path: Path) -> None:
 {
   "input_path": "jobs.json",
   "daily_output_root": "daily_outputs",
-  "top": 10,
-  "portals": {
-    "linkedin": ["https://linkedin.example/search"],
-    "indeed": ["https://indeed.example/search"]
-  }
+  "top": 10
 }
         """.strip(),
         encoding="utf-8",
@@ -45,7 +41,6 @@ def test_load_ui_config_reads_portals(tmp_path: Path) -> None:
     assert config.input_path == "jobs.json"
     assert config.daily_output_root == "daily_outputs"
     assert config.top == 10
-    assert config.portals["linkedin"] == ["https://linkedin.example/search"]
 
 
 def test_build_pipeline_command_uses_config() -> None:
@@ -53,7 +48,6 @@ def test_build_pipeline_command_uses_config() -> None:
         input_path="jobs.json",
         daily_output_root="outputs",
         top=30,
-        portals={"linkedin": []},
         base_resume="base_resume.json",
         rss_urls=["https://example.com/rss"],
     )

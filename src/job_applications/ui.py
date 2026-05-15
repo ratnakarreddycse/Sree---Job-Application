@@ -3,8 +3,10 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 import webbrowser
 from copy import deepcopy
 from dataclasses import dataclass
@@ -21,26 +23,13 @@ class UiConfig:
     input_path: str | None
     daily_output_root: str
     top: int
-    portals: dict[str, list[str]]
     base_resume: str | None = None
     rss_urls: list[str] | None = None
+    portal_config_path: str | None = None
 
     def __post_init__(self) -> None:
         if self.rss_urls is None:
             object.__setattr__(self, "rss_urls", [])
-
-
-DEFAULT_PORTALS = {
-    "linkedin": [],
-    "indeed": [],
-    "dice": [],
-    "glassdoor": [],
-    "myvisajobs": [],
-    "builtin": [],
-    "greenhouse": [],
-    "lever": [],
-    "workday": [],
-}
 
 
 DEFAULT_ANSWER_MEMORY: dict[str, Any] = {
@@ -86,23 +75,18 @@ def _as_int(value: object, fallback: int) -> int:
 
 def load_ui_config(path: Path) -> UiConfig:
     if not path.exists():
-        return UiConfig(input_path=None, daily_output_root="outputs", top=25, portals=dict(DEFAULT_PORTALS))
+        return UiConfig(input_path=None, daily_output_root="outputs", top=0)
 
     payload = json.loads(path.read_text(encoding="utf-8"))
-    portals = dict(DEFAULT_PORTALS)
-    for key, urls in payload.get("portals", {}).items():
-        if isinstance(urls, list):
-            portals[str(key).strip().lower()] = [str(url) for url in urls if str(url).strip()]
-
     rss_urls = [str(u) for u in payload.get("rss_urls", []) if str(u).strip()]
 
     return UiConfig(
         input_path=_as_optional_text(payload.get("input_path")),
         daily_output_root=_as_optional_text(payload.get("daily_output_root")) or "outputs",
-        top=_as_int(payload.get("top"), fallback=25),
-        portals=portals,
+        top=_as_int(payload.get("top"), fallback=0),
         base_resume=_as_optional_text(payload.get("base_resume")),
         rss_urls=rss_urls,
+        portal_config_path=str(path) if path.exists() else None,
     )
 
 
@@ -123,6 +107,8 @@ def build_pipeline_command(config: UiConfig) -> list[str]:
         command.extend(["--base-resume", config.base_resume])
     for url in (config.rss_urls or []):
         command.extend(["--rss-url", url])
+    if config.portal_config_path:
+        command.extend(["--portal-config", config.portal_config_path])
     return command
 
 
@@ -375,6 +361,225 @@ def _save_answer_memory(daily_output_root: str, memory: dict[str, Any]) -> tuple
         return False, str(exc)
 
 
+def _inline_md(text: str) -> str:
+    """Convert inline markdown (bold, italic) to HTML entities."""
+    text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
+    text = re.sub(r"(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)", r"<em>\1</em>", text)
+    return text
+
+
+def _md_to_html_doc(md_content: str) -> str:
+    """Convert resume markdown to a full ATS-styled HTML document for PDF printing."""
+    lines = md_content.splitlines()
+    body_parts: list[str] = []
+    in_ul = False
+
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            if in_ul:
+                body_parts.append("</ul>")
+                in_ul = False
+            continue
+        if stripped.startswith("### "):
+            if in_ul:
+                body_parts.append("</ul>")
+                in_ul = False
+            body_parts.append(f"<h3>{_inline_md(stripped[4:])}</h3>")
+        elif stripped.startswith("## "):
+            if in_ul:
+                body_parts.append("</ul>")
+                in_ul = False
+            body_parts.append(f"<h2>{_inline_md(stripped[3:])}</h2>")
+        elif stripped.startswith("# "):
+            if in_ul:
+                body_parts.append("</ul>")
+                in_ul = False
+            body_parts.append(f"<h1>{_inline_md(stripped[2:])}</h1>")
+        elif stripped.startswith("- "):
+            if not in_ul:
+                body_parts.append("<ul>")
+                in_ul = True
+            body_parts.append(f"<li>{_inline_md(stripped[2:])}</li>")
+        else:
+            if in_ul:
+                body_parts.append("</ul>")
+                in_ul = False
+            body_parts.append(f"<p>{_inline_md(stripped)}</p>")
+
+    if in_ul:
+        body_parts.append("</ul>")
+
+    body_html = "\n".join(body_parts)
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8">
+<style>
+  * {{ margin:0; padding:0; box-sizing:border-box; }}
+  body {{
+    font-family: "Times New Roman", Times, serif;
+    font-size: 11pt; line-height: 1.45; color: #000;
+    padding: 0.6in 0.65in; max-width: 8.5in;
+  }}
+  h1 {{ font-size:17pt; font-weight:bold; text-align:center; margin-bottom:3px; }}
+  h1 + p {{ text-align:center; font-size:10pt; color:#333; margin-bottom:12px; }}
+  h2 {{
+    font-size:11pt; font-weight:bold; text-transform:uppercase;
+    letter-spacing:0.04em; border-bottom:1.5px solid #000;
+    padding-bottom:2px; margin-top:12px; margin-bottom:5px;
+  }}
+  h3 {{ font-size:11pt; font-weight:bold; margin-top:8px; margin-bottom:0; }}
+  h3 + p {{ font-size:10pt; color:#333; font-style:italic; margin-bottom:3px; }}
+  ul {{ margin:3px 0 3px 16px; }}
+  li {{ font-size:10.5pt; margin-bottom:2px; }}
+  p {{ font-size:10.5pt; margin-bottom:4px; }}
+  strong {{ font-weight:bold; }} em {{ font-style:italic; }}
+</style>
+</head>
+<body>
+{body_html}
+</body></html>"""
+
+
+def _find_chrome_binary() -> str | None:
+    """Locate Google Chrome or Chromium on macOS/Linux."""
+    candidates = [
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "/Applications/Chromium.app/Contents/MacOS/Chromium",
+        "/usr/bin/google-chrome",
+        "/usr/bin/chromium-browser",
+        "/usr/bin/chromium",
+    ]
+    for path in candidates:
+        if Path(path).exists():
+            return path
+    return shutil.which("google-chrome") or shutil.which("chromium") or shutil.which("chromium-browser")
+
+
+def _html_to_pdf(html_path: Path, pdf_path: Path) -> tuple[bool, str]:
+    """Convert HTML to PDF using headless Chrome."""
+    chrome = _find_chrome_binary()
+    if not chrome:
+        return False, "Google Chrome not found. Install Chrome to enable automatic PDF generation."
+    try:
+        result = subprocess.run(
+            [
+                chrome,
+                "--headless=new",
+                "--disable-gpu",
+                "--no-sandbox",
+                "--disable-extensions",
+                "--run-all-compositor-stages-before-draw",
+                "--no-pdf-header-footer",
+                f"--print-to-pdf={pdf_path}",
+                f"file://{html_path}",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        if pdf_path.exists():
+            return True, str(pdf_path)
+        return False, f"Chrome exited {result.returncode}: {result.stderr[:300]}"
+    except subprocess.TimeoutExpired:
+        return False, "Chrome timed out generating PDF"
+    except OSError as exc:
+        return False, str(exc)
+
+
+def _prep_resume_pdf(url: str, slug: str, daily_output_root: str) -> tuple[bool, str, str]:
+    """
+    Find the resume for a job (by slug or URL), convert to PDF, place in ~/Downloads/.
+    Returns (ok, pdf_absolute_path, filename_or_error_message).
+    """
+    resumes_root = Path(daily_output_root).parent / "resumes"
+    index_path = resumes_root / "index.json"
+    downloads_dir = Path.home() / "Downloads"
+
+    if not index_path.exists():
+        return False, "", "No resume index found. Run the pipeline first."
+
+    try:
+        index_data = json.loads(index_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False, "", "Could not read resume index."
+
+    resumes = index_data.get("resumes", {})
+
+    def _extract_job_id(u: str) -> str | None:
+        m = re.search(r"[?&/](?:gh_jid|jobId|id)[=\/](\d+)", u, re.IGNORECASE)
+        if m:
+            return m.group(1)
+        m = re.search(r"/(\d{6,})", u)
+        return m.group(1) if m else None
+
+    # Resolve slug from URL if not provided directly
+    if not slug and url:
+        url_id = _extract_job_id(url)
+        try:
+            url_host = urlparse(url).hostname or ""
+        except Exception:
+            url_host = ""
+        best_slug: str | None = None
+        for s, entry in resumes.items():
+            apply_url = entry.get("apply_url", "")
+            if not apply_url:
+                continue
+            entry_id = _extract_job_id(apply_url)
+            if url_id and entry_id and url_id == entry_id:
+                best_slug = s
+                break
+            if url_host and not best_slug:
+                try:
+                    entry_host = urlparse(apply_url).hostname or ""
+                    if url_host == entry_host:
+                        best_slug = s
+                except Exception:
+                    pass
+        slug = best_slug or ""
+
+    if not slug:
+        return False, "", "No matching resume found for this URL."
+
+    # Sanitize slug — only allow alphanumeric and hyphens (prevent path traversal)
+    safe_slug = re.sub(r"[^a-z0-9\-]", "", slug.lower())
+    if safe_slug != slug.lower().replace("_", "-"):
+        return False, "", "Invalid slug format."
+
+    entry = resumes.get(safe_slug)
+    if not entry:
+        return False, "", f"No resume entry for: {safe_slug}"
+
+    resume_md_path = resumes_root.parent / entry["resume_path"]
+    if not resume_md_path.exists():
+        return False, "", f"Resume file not found: {resume_md_path}"
+
+    # Build a human-readable PDF filename
+    company_clean = re.sub(r"[^a-zA-Z0-9]", "_", entry.get("company", "Company")).strip("_")
+    role_clean = re.sub(r"[^a-zA-Z0-9]", "_", entry.get("role", "Role")).strip("_")
+    role_clean = re.sub(r"_+", "_", role_clean)
+    pdf_filename = f"Ratnakar_Reddy_{company_clean}_{role_clean}.pdf"
+    pdf_path = downloads_dir / pdf_filename
+
+    # Convert .md → styled HTML → PDF
+    md_content = resume_md_path.read_text(encoding="utf-8")
+    html_content = _md_to_html_doc(md_content)
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".html", delete=False, encoding="utf-8") as tmp:
+        tmp.write(html_content)
+        tmp_html = Path(tmp.name)
+
+    try:
+        ok, msg = _html_to_pdf(tmp_html, pdf_path)
+    finally:
+        tmp_html.unlink(missing_ok=True)
+
+    if not ok:
+        return False, "", msg
+
+    return True, str(pdf_path), pdf_filename
+
+
 def make_handler(config: UiConfig) -> type[BaseHTTPRequestHandler]:
     class UiHandler(BaseHTTPRequestHandler):
         def _send_json(self, payload: dict[str, Any], status_code: int = 200) -> None:
@@ -398,9 +603,6 @@ def make_handler(config: UiConfig) -> type[BaseHTTPRequestHandler]:
             if parsed.path == "/":
                 self._send_html(_render_index_html(config))
                 return
-            if parsed.path == "/api/portals":
-                self._send_json({"portals": config.portals})
-                return
             if parsed.path == "/api/latest-jobs":
                 manifest = _find_latest_manifest(config.daily_output_root)
                 if manifest is None:
@@ -411,22 +613,39 @@ def make_handler(config: UiConfig) -> type[BaseHTTPRequestHandler]:
             if parsed.path == "/api/answers":
                 self._send_json({"ok": True, "memory": _load_answer_memory(config.daily_output_root)})
                 return
+            if parsed.path == "/api/resume-index":
+                index_path = Path(config.daily_output_root).parent / "resumes" / "index.json"
+                if index_path.exists():
+                    try:
+                        index_data = json.loads(index_path.read_text(encoding="utf-8"))
+                        self._send_json({"ok": True, "index": index_data})
+                    except (OSError, json.JSONDecodeError):
+                        self._send_json({"ok": False, "index": {}})
+                else:
+                    self._send_json({"ok": True, "index": {"resumes": {}}})
+                return
+            if parsed.path == "/api/prep-resume":
+                query = parse_qs(parsed.query)
+                slug = (query.get("slug") or [""])[0].strip()
+                url = unquote((query.get("url") or [""])[0].strip())
+                ok, pdf_path, filename_or_err = _prep_resume_pdf(url, slug, config.daily_output_root)
+                if ok:
+                    self._send_json({"ok": True, "pdf_path": pdf_path, "filename": filename_or_err})
+                else:
+                    self._send_json({"ok": False, "message": filename_or_err})
+                return
+            if parsed.path == "/api/open-downloads":
+                downloads_dir = Path.home() / "Downloads"
+                try:
+                    subprocess.run(["open", str(downloads_dir)], check=True)
+                    self._send_json({"ok": True})
+                except subprocess.CalledProcessError as exc:
+                    self._send_json({"ok": False, "message": str(exc)})
+                return
             self._send_json({"error": "Not found"}, status_code=404)
 
         def do_POST(self) -> None:  # noqa: N802
             parsed = urlparse(self.path)
-
-            if parsed.path == "/api/open-portal":
-                query = parse_qs(parsed.query)
-                portal = (query.get("portal") or [""])[0].strip().lower()
-                urls = config.portals.get(portal, [])
-                if not urls:
-                    self._send_json({"ok": False, "message": f"No URLs configured for portal: {portal}"}, status_code=400)
-                    return
-                for url in urls:
-                    webbrowser.open_new_tab(url)
-                self._send_json({"ok": True, "portal": portal, "opened": len(urls)})
-                return
 
             if parsed.path == "/api/open-job":
                 query = parse_qs(parsed.query)
@@ -459,48 +678,22 @@ def make_handler(config: UiConfig) -> type[BaseHTTPRequestHandler]:
                 self._send_json({"ok": ok, "message": message})
                 return
 
-            if parsed.path == "/api/save-profile":
-                length = int(self.headers.get("Content-Length", "0"))
-                body = self.rfile.read(length) if length > 0 else b"{}"
+            if parsed.path == "/api/learn":
+                length = int(self.headers.get("Content-Length", 0))
+                body_bytes = self.rfile.read(length) if length > 0 else b""
                 try:
-                    payload = json.loads(body.decode("utf-8"))
-                except (UnicodeDecodeError, json.JSONDecodeError):
-                    self._send_json({"ok": False, "message": "Invalid JSON payload"}, status_code=400)
-                    return
-
-                profile_raw = payload.get("profile") if isinstance(payload, dict) else None
-                if not isinstance(profile_raw, dict):
-                    self._send_json({"ok": False, "message": "Missing profile object"}, status_code=400)
-                    return
-
-                memory = _load_answer_memory(config.daily_output_root)
-                for key in memory["profile"]:
-                    value = profile_raw.get(key)
-                    if value is not None:
-                        memory["profile"][key] = str(value).strip()
-                ok, message = _save_answer_memory(config.daily_output_root, memory)
-                self._send_json({"ok": ok, "message": message})
-                return
-
-            if parsed.path == "/api/save-answer":
-                length = int(self.headers.get("Content-Length", "0"))
-                body = self.rfile.read(length) if length > 0 else b"{}"
-                try:
-                    payload = json.loads(body.decode("utf-8"))
-                except (UnicodeDecodeError, json.JSONDecodeError):
-                    self._send_json({"ok": False, "message": "Invalid JSON payload"}, status_code=400)
-                    return
-
-                question = str(payload.get("question", "")).strip() if isinstance(payload, dict) else ""
-                answer = str(payload.get("answer", "")).strip() if isinstance(payload, dict) else ""
-                if not question or not answer:
-                    self._send_json({"ok": False, "message": "Both question and answer are required"}, status_code=400)
-                    return
-
-                memory = _load_answer_memory(config.daily_output_root)
-                memory["questions"][question] = answer
-                ok, message = _save_answer_memory(config.daily_output_root, memory)
-                self._send_json({"ok": ok, "message": message, "question": question})
+                    payload_in = json.loads(body_bytes.decode("utf-8"))
+                    question = str(payload_in.get("question", "")).strip()
+                    answer = str(payload_in.get("answer", "")).strip()
+                    if question and answer:
+                        memory = _load_answer_memory(config.daily_output_root)
+                        memory["questions"][question] = answer
+                        _save_answer_memory(config.daily_output_root, memory)
+                        self._send_json({"ok": True, "saved": question})
+                    else:
+                        self._send_json({"ok": False, "message": "question and answer required"})
+                except (json.JSONDecodeError, KeyError):
+                    self._send_json({"ok": False, "message": "invalid payload"}, status_code=400)
                 return
 
             self._send_json({"error": "Not found"}, status_code=404)
@@ -509,12 +702,6 @@ def make_handler(config: UiConfig) -> type[BaseHTTPRequestHandler]:
 
 
 def _render_index_html(config: UiConfig) -> str:
-    h1b_portals = {"myvisajobs", "dice"}
-    portal_cards = "".join(
-        f'<button class="portal-btn{" portal-h1b" if name in h1b_portals else ""}" onclick="openPortal(\'{name}\')">{("H1B " if name in h1b_portals else "") + name.title()}</button>'
-        for name in sorted(config.portals)
-    )
-
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -552,10 +739,6 @@ def _render_index_html(config: UiConfig) -> str:
     .btn-apply {{ background:rgba(16,185,129,.2); color:#a7f3d0; }}
     .btn-draft {{ background:rgba(56,189,248,.2); color:#7dd3fc; }}
     .btn-resume {{ background:rgba(52,211,153,.2); color:#86efac; }}
-    .helper-grid {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:8px; margin-bottom:8px; }}
-    .helper-grid input, .helper-row input {{ background:#020617; color:var(--text); border:1px solid var(--border); border-radius:8px; padding:8px; font-size:.8rem; }}
-    .helper-row {{ display:grid; grid-template-columns:1.2fr 1fr auto; gap:8px; }}
-    .mini-btn {{ border:none; border-radius:8px; padding:8px 10px; font-size:.75rem; font-weight:700; background:linear-gradient(90deg,#22d3ee,#34d399); color:#042433; cursor:pointer; }}
     .empty-state {{ color:var(--muted); text-align:center; padding:20px; }}
     .toast {{ position:fixed; right:20px; bottom:20px; background:#1e293b; border:1px solid var(--border); border-radius:10px; padding:10px 14px; opacity:0; transform:translateY(60px); transition:all .25s; }}
     .toast.show {{ opacity:1; transform:translateY(0); }}
@@ -567,11 +750,6 @@ def _render_index_html(config: UiConfig) -> str:
     <p class="sub">Single-place job view with per-row apply links and reusable answer memory.</p>
 
     <div class="panel">
-      <div style="font-size:.72rem;color:#64748b;text-transform:uppercase;margin-bottom:8px">Job Portals</div>
-      <div class="portal-grid">{portal_cards}</div>
-    </div>
-
-    <div class="panel">
       <button id="run-btn" class="run-btn" onclick="runPipeline()">Run Pipeline and Score Jobs</button>
       <div class="run-output" id="pipeline-out">Ready.</div>
             <details class="raw-output-wrap" id="pipeline-raw-wrap">
@@ -581,34 +759,22 @@ def _render_index_html(config: UiConfig) -> str:
     </div>
 
     <div class="panel">
-      <div style="font-size:.72rem;color:#64748b;text-transform:uppercase;margin-bottom:8px">Autofill Memory</div>
-      <div class="helper-grid">
-        <input id="p-full_name" placeholder="Full name" />
-        <input id="p-email" placeholder="Email" />
-        <input id="p-phone" placeholder="Phone" />
-        <input id="p-linkedin" placeholder="LinkedIn URL" />
-        <input id="p-location" placeholder="Location" />
-        <input id="p-work_authorization" placeholder="Work authorization" />
-        <input id="p-needs_sponsorship" placeholder="Needs sponsorship (Yes/No)" />
-      </div>
-      <div style="display:flex;gap:8px;margin-bottom:8px">
-        <button class="mini-btn" onclick="saveProfileMemory()">Save Profile</button>
-        <button class="mini-btn" onclick="copyProfileSummary()">Copy Profile</button>
-      </div>
-      <div class="helper-row">
-        <input id="qa-question" placeholder="Question asked by portal" />
-        <input id="qa-answer" placeholder="Answer" />
-        <button class="mini-btn" onclick="rememberAnswer()">Remember</button>
-      </div>
-    </div>
-
-    <div class="panel">
       <div class="jobs-head">
         <h2 style="margin:0;font-size:1rem">Ranked Jobs</h2>
-        <button class="refresh-btn" onclick="loadJobs()">Refresh</button>
+        <div style="display:flex;align-items:center;gap:8px">
+          <label style="font-size:.75rem;color:var(--muted)">Per page</label>
+          <select id="page-size-select" onchange="changePageSize()" style="background:#0f172a;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-size:.75rem;cursor:pointer">
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="0">All</option>
+          </select>
+          <button class="refresh-btn" onclick="loadJobs()">Refresh</button>
+        </div>
       </div>
       <div id="stats-row" class="stats-row" style="display:none"></div>
       <div id="jobs-container" class="empty-state">Loading jobs...</div>
+      <div id="pagination-row" style="display:none;justify-content:center;align-items:center;gap:6px;padding:12px 0"></div>
     </div>
   </div>
   <div id="toast" class="toast"></div>
@@ -624,14 +790,6 @@ def _render_index_html(config: UiConfig) -> str:
 
     function esc(v) {{
       return String(v || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;');
-    }}
-
-    var PROFILE_KEYS = ['full_name','email','phone','linkedin','location','work_authorization','needs_sponsorship'];
-
-    async function openPortal(portal) {{
-      var r = await fetch('/api/open-portal?portal=' + encodeURIComponent(portal), {{ method: 'POST' }});
-      var d = await r.json();
-      toast(d.ok ? ('Opened ' + d.opened + ' tabs for ' + portal) : d.message, d.ok);
     }}
 
         async function openJob(url, role, company) {{
@@ -722,53 +880,6 @@ def _render_index_html(config: UiConfig) -> str:
             return text;
         }}
 
-    async function loadAnswerMemory() {{
-      var r = await fetch('/api/answers');
-      var d = await r.json();
-      if (!d.ok || !d.memory || !d.memory.profile) return;
-      var p = d.memory.profile;
-      for (var i = 0; i < PROFILE_KEYS.length; i++) {{
-        var k = PROFILE_KEYS[i];
-        var el = q('p-' + k);
-        if (el) el.value = p[k] || '';
-      }}
-    }}
-
-    async function saveProfileMemory() {{
-      var profile = {{}};
-      for (var i = 0; i < PROFILE_KEYS.length; i++) {{
-        var k = PROFILE_KEYS[i];
-        var el = q('p-' + k);
-        profile[k] = el ? String(el.value || '').trim() : '';
-      }}
-      var r = await fetch('/api/save-profile', {{ method: 'POST', headers: {{ 'Content-Type': 'application/json' }}, body: JSON.stringify({{ profile: profile }}) }});
-      var d = await r.json();
-      toast(d.ok ? 'Profile saved' : (d.message || 'Could not save profile'), d.ok);
-    }}
-
-    async function rememberAnswer() {{
-      var questionEl = q('qa-question');
-      var answerEl = q('qa-answer');
-      var question = questionEl ? String(questionEl.value || '').trim() : '';
-      var answer = answerEl ? String(answerEl.value || '').trim() : '';
-      if (!question || !answer) {{ toast('Enter both question and answer', false); return; }}
-      var r = await fetch('/api/save-answer', {{ method: 'POST', headers: {{ 'Content-Type': 'application/json' }}, body: JSON.stringify({{ question: question, answer: answer }}) }});
-      var d = await r.json();
-      toast(d.ok ? 'Answer remembered' : (d.message || 'Could not save answer'), d.ok);
-      if (d.ok) {{ questionEl.value = ''; answerEl.value = ''; }}
-    }}
-
-    function copyProfileSummary() {{
-      var lines = [];
-      for (var i = 0; i < PROFILE_KEYS.length; i++) {{
-        var k = PROFILE_KEYS[i];
-        var el = q('p-' + k);
-        var v = el ? String(el.value || '').trim() : '';
-        if (v) lines.push(k.split('_').join(' ') + ': ' + v);
-      }}
-      navigator.clipboard.writeText(lines.join('\\n')).then(function() {{ toast('Copied profile', true); }}, function() {{ toast('Copy failed', false); }});
-    }}
-
     function bindButtons() {{
       var applyButtons = document.querySelectorAll('button[data-apply]');
       for (var i = 0; i < applyButtons.length; i++) {{
@@ -799,27 +910,24 @@ def _render_index_html(config: UiConfig) -> str:
       return esc(score) + '%';
     }}
 
-    async function loadJobs() {{
-      var c = q('jobs-container');
-      var sr = q('stats-row');
-      c.innerHTML = '<div class="empty-state">Loading jobs...</div>';
-      sr.style.display = 'none';
-      var r = await fetch('/api/latest-jobs');
-      var d = await r.json();
-      if (!d.ok || !d.manifest || !d.manifest.jobs || !d.manifest.jobs.length) {{
-        c.innerHTML = '<div class="empty-state">' + esc(d.message || 'No jobs found yet') + '</div>';
-        return;
-      }}
-      var jobs = d.manifest.jobs;
-      var applyNow = jobs.filter(function(x) {{ return x.action === 'apply_now'; }}).length;
-      var reviewFast = jobs.filter(function(x) {{ return x.action === 'review_fast'; }}).length;
-      var resumes = jobs.filter(function(x) {{ return !!x.resume_file; }}).length;
-      sr.innerHTML = '<div class="stat-chip">Last run <b>' + esc(d.manifest.generated_on || '') + '</b></div>' +
-        '<div class="stat-chip"><b style="color:var(--green)">' + applyNow + '</b> Apply Now</div>' +
-        '<div class="stat-chip"><b style="color:var(--accent)">' + reviewFast + '</b> Review Fast</div>' +
-        '<div class="stat-chip"><b>' + resumes + '</b> Tailored Resumes</div>';
-      sr.style.display = 'flex';
+    var _allJobs = [];
+    var _currentPage = 1;
 
+    function getPageSize() {{
+      var sel = q('page-size-select');
+      return sel ? parseInt(sel.value, 10) : 25;
+    }}
+
+    function changePageSize() {{
+      _currentPage = 1;
+      renderJobsPage();
+    }}
+
+    function renderJobsPage() {{
+      var c = q('jobs-container');
+      var pr = q('pagination-row');
+      var ps = getPageSize();
+      var jobs = ps <= 0 ? _allJobs : _allJobs.slice((_currentPage - 1) * ps, _currentPage * ps);
       var html = '<table><thead><tr><th>#</th><th>Company</th><th>Role</th><th>Score</th><th>Action</th><th>Apply</th><th>JD Match</th><th>Files</th></tr></thead><tbody>';
       for (var i = 0; i < jobs.length; i++) {{
         var j = jobs[i];
@@ -839,9 +947,56 @@ def _render_index_html(config: UiConfig) -> str:
       html += '</tbody></table>';
       c.innerHTML = html;
       bindButtons();
+      if (ps <= 0 || _allJobs.length <= ps) {{
+        pr.style.display = 'none';
+      }} else {{
+        var totalPages = Math.ceil(_allJobs.length / ps);
+        var phtml = '<span style="font-size:.78rem;color:var(--muted)">' + ((_currentPage-1)*ps+1) + '\u2013' + Math.min(_currentPage*ps,_allJobs.length) + ' of ' + _allJobs.length + '</span>';
+        phtml += '<button class="refresh-btn" onclick="goPage(' + (_currentPage-1) + ')"' + (_currentPage<=1?' disabled':'') + '>&#8592; Prev</button>';
+        for (var p = 1; p <= totalPages; p++) {{
+          phtml += '<button class="refresh-btn" onclick="goPage(' + p + ')" style="' + (p===_currentPage?'background:var(--accent);color:#042433;':'') + '">' + p + '</button>';
+        }}
+        phtml += '<button class="refresh-btn" onclick="goPage(' + (_currentPage+1) + ')"' + (_currentPage>=totalPages?' disabled':'') + '>Next &#8594;</button>';
+        pr.innerHTML = phtml;
+        pr.style.display = 'flex';
+      }}
     }}
 
-    loadAnswerMemory();
+    function goPage(p) {{
+      var ps = getPageSize();
+      var totalPages = ps <= 0 ? 1 : Math.ceil(_allJobs.length / ps);
+      _currentPage = Math.max(1, Math.min(p, totalPages));
+      renderJobsPage();
+      q('jobs-container').scrollIntoView({{behavior:'smooth',block:'start'}});
+    }}
+
+    async function loadJobs() {{
+      var c = q('jobs-container');
+      var sr = q('stats-row');
+      var pr = q('pagination-row');
+      c.innerHTML = '<div class="empty-state">Loading jobs...</div>';
+      sr.style.display = 'none';
+      if (pr) pr.style.display = 'none';
+      var r = await fetch('/api/latest-jobs');
+      var d = await r.json();
+      if (!d.ok || !d.manifest || !d.manifest.jobs || !d.manifest.jobs.length) {{
+        c.innerHTML = '<div class="empty-state">' + esc(d.message || 'No jobs found yet') + '</div>';
+        return;
+      }}
+      _allJobs = d.manifest.jobs;
+      _currentPage = 1;
+      var applyNow = _allJobs.filter(function(x) {{ return x.action === 'apply_now'; }}).length;
+      var reviewFast = _allJobs.filter(function(x) {{ return x.action === 'review_fast'; }}).length;
+      var resumes = _allJobs.filter(function(x) {{ return !!x.resume_file; }}).length;
+      sr.innerHTML = '<div class="stat-chip">Last run <b>' + esc(d.manifest.generated_on || '') + '</b></div>' +
+        '<div class="stat-chip"><b style="color:var(--green)">' + applyNow + '</b> Apply Now</div>' +
+        '<div class="stat-chip"><b style="color:var(--accent)">' + reviewFast + '</b> Review Fast</div>' +
+        '<div class="stat-chip"><b>' + resumes + '</b> Tailored Resumes</div>' +
+        '<div class="stat-chip"><b>' + _allJobs.length + '</b> Total</div>';
+      sr.style.display = 'flex';
+      renderJobsPage();
+    }}
+
     loadJobs();
   </script>
 </body>

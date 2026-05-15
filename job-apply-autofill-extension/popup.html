@@ -59,6 +59,14 @@
   <button id="sync-dashboard">Sync From Dashboard (localhost)</button>
   <button id="run-autofill">Run Autofill On This Tab</button>
 
+  <div id="resume-panel" style="display:none;margin-top:10px;border:1px solid #334155;border-radius:8px;padding:8px;">
+    <h2 style="margin:0 0 6px;">Resume for This Job</h2>
+    <div id="resume-info" class="muted"></div>
+    <div id="resume-pdf-status" style="display:none;margin-top:6px;font-size:11px;line-height:1.5;"></div>
+    <button id="open-downloads" style="margin-top:6px;background:linear-gradient(90deg,#34d399,#22d3ee);">📂 Open Downloads Folder</button>
+    <button id="copy-resume-path" style="margin-top:4px;">Copy .md Resume Path</button>
+  </div>
+
   <h2>Import/Export (JSON)</h2>
   <textarea id="memory-json" placeholder='Paste memory JSON here'></textarea>
   <button id="import-json">Import JSON</button>

@@ -1,14 +1,24 @@
 {
   "profile": {
-    "email": "ratnakar@example.com",
-    "full_name": "Ratnakar Reddy",
-    "linkedin": "",
-    "location": "",
+    "email": "ratnakarreddycse@gmail.com",
+    "full_name": "Ratnakar Reddy Kota",
+    "linkedin": "https://www.linkedin.com/in/ratnakar-reddykota-cse",
+    "location": "Charlotte, North Carolina, United States",
     "needs_sponsorship": "Yes",
-    "phone": "",
-    "work_authorization": "H1B"
+    "phone": "803-970-4524",
+    "work_authorization": "Yes"
   },
   "questions": {
-    "Are you legally authorized to work in the US?": "Yes"
+    "Are you Hispanic/Latino?": "No",
+    "Are you legally authorized to work in the US?": "Yes",
+    "Are you legally authorized to work in the country in which you are applying?": "Yes",
+    "Are you willing to relocate?": "No, I prefer fully remote roles",
+    "Disability Status": "No, I do not have a disability and have not had one in the past",
+    "Do you currently or have you previously worked for Databricks in the past?": "No",
+    "Do you now or will you in the future need sponsorship for employment visa status in the country in which you are applying?": "Yes",
+    "Gender": "Male",
+    "How did you hear about this job?": "Career portal",
+    "Please identify your race": "Asian",
+    "Veteran Status": "I am not a protected veteran"
   }
 }
