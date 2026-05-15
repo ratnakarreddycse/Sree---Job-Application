@@ -1,0 +1,194 @@
+{
+  "generated_on": "2026-05-01",
+  "resumes": {
+    "databricks-senior-data-engineer": {
+      "company": "Databricks",
+      "role": "Senior Data Engineer",
+      "score": 111,
+      "keyword_match_score": 100,
+      "apply_url": "https://databricks.com/company/careers/open-positions/job?gh_jid=7823561002",
+      "resume_path": "resumes/2026-05-01/databricks-senior-data-engineer.md",
+      "date": "2026-05-01"
+    },
+    "snowflake-senior-data-engineer": {
+      "company": "Snowflake",
+      "role": "Senior Data Engineer",
+      "score": 111,
+      "keyword_match_score": 100,
+      "apply_url": "https://careers.snowflake.com/us/en/search-results",
+      "resume_path": "resumes/2026-05-01/snowflake-senior-data-engineer.md",
+      "date": "2026-05-01"
+    },
+    "stripe-data-platform-engineer": {
+      "company": "Stripe",
+      "role": "Data Platform Engineer",
+      "score": 111,
+      "keyword_match_score": 92,
+      "apply_url": "https://stripe.com/jobs/search",
+      "resume_path": "resumes/2026-05-01/stripe-data-platform-engineer.md",
+      "date": "2026-05-01"
+    },
+    "databricks-sr-analytics-engineer-gtm-strategy-and-operations": {
+      "company": "Databricks",
+      "role": "Sr Analytics Engineer - GTM Strategy and Operations",
+      "score": 111,
+      "keyword_match_score": 92,
+      "apply_url": "https://databricks.com/company/careers/open-positions/job?gh_jid=8479036002",
+      "resume_path": "resumes/2026-05-01/databricks-sr-analytics-engineer-gtm-strategy-and-operations.md",
+      "date": "2026-05-01"
+    },
+    "airbnb-staff-software-engineer-data-engineering": {
+      "company": "Airbnb",
+      "role": "Staff Software Engineer, Data Engineering",
+      "score": 107,
+      "keyword_match_score": 88,
+      "apply_url": "https://careers.airbnb.com/positions/7095225?gh_jid=7095225",
+      "resume_path": "resumes/2026-05-01/airbnb-staff-software-engineer-data-engineering.md",
+      "date": "2026-05-01"
+    },
+    "confluent-analytics-engineer": {
+      "company": "Confluent",
+      "role": "Analytics Engineer",
+      "score": 103,
+      "keyword_match_score": 86,
+      "apply_url": "https://careers.confluent.io/jobs",
+      "resume_path": "resumes/2026-05-01/confluent-analytics-engineer.md",
+      "date": "2026-05-01"
+    },
+    "airbnb-staff-analytics-engineer": {
+      "company": "Airbnb",
+      "role": "Staff Analytics Engineer",
+      "score": 99,
+      "keyword_match_score": 75,
+      "apply_url": "https://careers.airbnb.com/positions/7733495?gh_jid=7733495",
+      "resume_path": "resumes/2026-05-01/airbnb-staff-analytics-engineer.md",
+      "date": "2026-05-01"
+    },
+    "affirm-staff-analytics-engineer-subledger-platform": {
+      "company": "Affirm",
+      "role": "Staff Analytics Engineer, Subledger Platform",
+      "score": 99,
+      "keyword_match_score": 100,
+      "apply_url": "https://job-boards.greenhouse.io/affirm/jobs/7715405003",
+      "resume_path": "resumes/2026-05-01/affirm-staff-analytics-engineer-subledger-platform.md",
+      "date": "2026-05-01"
+    },
+    "brex-data-engineer": {
+      "company": "Brex",
+      "role": "Data Engineer",
+      "score": 99,
+      "keyword_match_score": 86,
+      "apply_url": "https://www.brex.com/careers/8366850002?gh_jid=8366850002",
+      "resume_path": "resumes/2026-05-01/brex-data-engineer.md",
+      "date": "2026-05-01"
+    },
+    "coinbase-senior-analytics-engineer-platform-financial-analytics": {
+      "company": "Coinbase",
+      "role": "Senior Analytics Engineer (Platform - Financial Analytics)",
+      "score": 95,
+      "keyword_match_score": 100,
+      "apply_url": "https://www.coinbase.com/careers/positions/7736521?gh_jid=7736521",
+      "resume_path": "resumes/2026-05-01/coinbase-senior-analytics-engineer-platform-financial-analytics.md",
+      "date": "2026-05-01"
+    },
+    "airbnb-senior-staff-data-engineer-marketplaces-dna": {
+      "company": "Airbnb",
+      "role": "Senior Staff Data Engineer, Marketplaces DNA",
+      "score": 91,
+      "keyword_match_score": 100,
+      "apply_url": "https://careers.airbnb.com/positions/7463663?gh_jid=7463663",
+      "resume_path": "resumes/2026-05-01/airbnb-senior-staff-data-engineer-marketplaces-dna.md",
+      "date": "2026-05-01"
+    },
+    "databricks-sr-staff-software-engineer-data-platform": {
+      "company": "Databricks",
+      "role": "Sr. Staff Software Engineer - Data Platform",
+      "score": 76,
+      "keyword_match_score": 79,
+      "apply_url": "https://databricks.com/company/careers/open-positions/job?gh_jid=7823561002",
+      "resume_path": "resumes/2026-05-01/databricks-sr-staff-software-engineer-data-platform.md",
+      "date": "2026-05-01"
+    },
+    "confluent-staff-software-engineer-flink-sql": {
+      "company": "Confluent",
+      "role": "Staff Software Engineer - Flink SQL",
+      "score": 68,
+      "keyword_match_score": 86,
+      "apply_url": "https://jobs.ashbyhq.com/confluent/79c5035c-4266-40f0-86e1-84d067ed77b1",
+      "resume_path": "resumes/2026-05-01/confluent-staff-software-engineer-flink-sql.md",
+      "date": "2026-05-01"
+    },
+    "confluent-staff-software-engineer-flink-control-plane": {
+      "company": "Confluent",
+      "role": "Staff Software Engineer - Flink Control Plane",
+      "score": 68,
+      "keyword_match_score": 86,
+      "apply_url": "https://jobs.ashbyhq.com/confluent/8606dc2b-3ad7-4423-9cbb-c7e6df0a1ae5",
+      "resume_path": "resumes/2026-05-01/confluent-staff-software-engineer-flink-control-plane.md",
+      "date": "2026-05-01"
+    },
+    "world-wide-technology-senior-data-engineer-st-louis": {
+      "company": "World Wide Technology",
+      "role": "Senior Data Engineer (St. Louis)",
+      "score": 67,
+      "keyword_match_score": 100,
+      "apply_url": "https://jobicy.com/jobs/142241-senior-data-engineer-st-louis",
+      "resume_path": "resumes/2026-05-01/world-wide-technology-senior-data-engineer-st-louis.md",
+      "date": "2026-05-01"
+    },
+    "coinbase-analytics-engineer": {
+      "company": "Coinbase",
+      "role": "Analytics Engineer",
+      "score": 67,
+      "keyword_match_score": 0,
+      "apply_url": "https://www.coinbase.com/careers/positions/7843710?gh_jid=7843710",
+      "resume_path": "resumes/2026-05-01/coinbase-analytics-engineer.md",
+      "date": "2026-05-01"
+    },
+    "airbnb-senior-software-engineer-data-infrastructure": {
+      "company": "Airbnb",
+      "role": "Senior Software Engineer, Data Infrastructure",
+      "score": 64,
+      "keyword_match_score": 80,
+      "apply_url": "https://careers.airbnb.com/positions/7683174?gh_jid=7683174",
+      "resume_path": "resumes/2026-05-01/airbnb-senior-software-engineer-data-infrastructure.md",
+      "date": "2026-05-01"
+    },
+    "coinbase-senior-software-engineer-data-platform": {
+      "company": "Coinbase",
+      "role": "Senior Software Engineer - Data Platform",
+      "score": 64,
+      "keyword_match_score": 75,
+      "apply_url": "https://www.coinbase.com/careers/positions/7851231?gh_jid=7851231",
+      "resume_path": "resumes/2026-05-01/coinbase-senior-software-engineer-data-platform.md",
+      "date": "2026-05-01"
+    },
+    "affirm-senior-software-engineer-backend-merchant-data-platform-eu": {
+      "company": "Affirm",
+      "role": "Senior Software Engineer, Backend (Merchant Data Platform EU)",
+      "score": 60,
+      "keyword_match_score": 80,
+      "apply_url": "https://job-boards.greenhouse.io/affirm/jobs/7651523003",
+      "resume_path": "resumes/2026-05-01/affirm-senior-software-engineer-backend-merchant-data-platform-eu.md",
+      "date": "2026-05-01"
+    },
+    "salesloft-senior-data-engineer": {
+      "company": "Salesloft",
+      "role": "Senior Data Engineer",
+      "score": 47,
+      "keyword_match_score": 0,
+      "apply_url": "https://jobicy.com/jobs/142570-senior-data-engineer-9",
+      "resume_path": "resumes/2026-05-01/salesloft-senior-data-engineer.md",
+      "date": "2026-05-01"
+    },
+    "experian-data-engineering-analyst-lead-scientist": {
+      "company": "Experian",
+      "role": "Data Engineering Analyst Lead/Scientist",
+      "score": 47,
+      "keyword_match_score": 0,
+      "apply_url": "https://jobicy.com/jobs/142235-data-engineering-analyst-lead-scientist-2",
+      "resume_path": "resumes/2026-05-01/experian-data-engineering-analyst-lead-scientist.md",
+      "date": "2026-05-01"
+    }
+  }
+}

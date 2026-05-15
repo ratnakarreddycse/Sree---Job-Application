@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.jobapplications.daily</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Users/ratnakarreddy/Develop/Job - Application/.venv/bin/python</string>
+		<string>-m</string>
+		<string>job_applications.cli</string>
+		<string>--daily-run</string>
+		<string>--daily-output-root</string>
+		<string>outputs</string>
+		<string>--top</string>
+		<string>15</string>
+		<string>--rss-limit</string>
+		<string>25</string>
+		<string>--rss-status</string>
+		<string>new</string>
+		<string>--input</string>
+		<string>applications.sample.json</string>
+	</array>
+	<key>WorkingDirectory</key>
+	<string>/Users/ratnakarreddy/Develop/Job - Application</string>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StartCalendarInterval</key>
+	<dict>
+		<key>Hour</key>
+		<integer>8</integer>
+		<key>Minute</key>
+		<integer>0</integer>
+	</dict>
+	<key>StandardOutPath</key>
+	<string>logs/job_pipeline.out.log</string>
+	<key>StandardErrorPath</key>
+	<string>logs/job_pipeline.err.log</string>
+</dict>
+</plist>

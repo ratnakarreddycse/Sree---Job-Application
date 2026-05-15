@@ -1,0 +1,93 @@
+{
+  "_comment": "Fill in every field with your real information. Remove this _comment key before use.",
+  "name": "Your Full Name",
+  "email": "you@example.com",
+  "phone": "+1-555-000-0000",
+  "linkedin": "linkedin.com/in/yourhandle",
+  "location": "City, State (Open to Remote, USA)",
+
+  "summary": "Results-driven Data Engineer with X years of experience designing and delivering large-scale data pipelines, analytics platforms, and cloud-based data infrastructure. Passionate about enabling data-driven decisions through robust ETL/ELT frameworks, real-time streaming, and modern data stack tooling.",
+
+  "skills": [
+    "Python", "SQL", "Scala",
+    "Apache Spark", "Apache Kafka", "Apache Airflow",
+    "dbt", "Snowflake", "Databricks",
+    "AWS (S3, Glue, Redshift, EMR, Athena, Lambda)",
+    "GCP (BigQuery, Dataflow, Dataproc)",
+    "Azure (ADF, Synapse, ADLS)",
+    "Docker", "Kubernetes", "Terraform",
+    "PostgreSQL", "MySQL", "MongoDB",
+    "Parquet", "Avro", "Delta Lake",
+    "Pandas", "NumPy", "Git"
+  ],
+
+  "experience": [
+    {
+      "_comment": "Most recent role first. Use end_year=0 for current role.",
+      "company": "Current Employer Inc.",
+      "title": "Senior Data Engineer",
+      "start_year": 2022,
+      "end_year": 0,
+      "location": "Remote, USA",
+      "bullets": [
+        "Designed and maintained 20+ production Airflow DAGs processing 5 TB/day across AWS S3 and Redshift.",
+        "Built Spark-based ETL pipelines on EMR, reducing data processing time by 40%.",
+        "Led migration of legacy SQL Server jobs to dbt + Snowflake, cutting query latency by 60%.",
+        "Implemented Delta Lake on Databricks for ACID-compliant lakehouse architecture.",
+        "Mentored 3 junior engineers; drove team adoption of CI/CD via GitHub Actions and Terraform."
+      ],
+      "existing_technologies": [
+        "python", "sql", "spark", "airflow", "dbt", "snowflake", "databricks",
+        "aws", "s3", "redshift", "emr", "delta lake", "terraform", "github actions"
+      ]
+    },
+    {
+      "company": "Previous Corp",
+      "title": "Data Engineer",
+      "start_year": 2019,
+      "end_year": 2022,
+      "location": "New York, NY",
+      "bullets": [
+        "Built real-time Kafka → Spark Streaming → PostgreSQL pipeline handling 100K events/minute.",
+        "Automated data ingestion from 15 third-party REST APIs using Python + Apache Airflow.",
+        "Developed Redshift data warehouse schemas supporting 50+ business KPI dashboards in Tableau.",
+        "Containerized data services with Docker and deployed on AWS ECS."
+      ],
+      "existing_technologies": [
+        "python", "sql", "kafka", "spark", "airflow", "postgresql", "redshift",
+        "tableau", "docker", "aws", "ecs"
+      ]
+    },
+    {
+      "company": "Early Career Company",
+      "title": "Junior Data Engineer / Analytics Engineer",
+      "start_year": 2017,
+      "end_year": 2019,
+      "location": "Chicago, IL",
+      "bullets": [
+        "Wrote Python scripts to extract, transform, and load data from MySQL and flat files into a central data warehouse.",
+        "Created Tableau dashboards consumed by 200+ business stakeholders daily.",
+        "Optimised slow-running SQL queries, reducing report generation time from 45 min to 3 min.",
+        "Assisted DBA team with MySQL replication setup and performance tuning."
+      ],
+      "existing_technologies": [
+        "python", "sql", "mysql", "tableau", "pandas", "git"
+      ]
+    }
+  ],
+
+  "education": [
+    {
+      "institution": "University of XYZ",
+      "degree": "Bachelor of Science",
+      "field": "Computer Science / Information Technology",
+      "year": 2017
+    }
+  ],
+
+  "certifications": [
+    "AWS Certified Data Analytics – Specialty",
+    "Databricks Certified Associate Developer for Apache Spark",
+    "dbt Analytics Engineering Certification"
+  ]
+}

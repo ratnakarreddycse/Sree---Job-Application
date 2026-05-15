@@ -1,0 +1,230 @@
+{
+  "input_path": "applications.json",
+  "base_resume": "base_resume.json",
+  "daily_output_root": "outputs",
+  "top": 0,
+  "blocked_role_patterns": [
+    "manager",
+    "director",
+    "vice president",
+    " vp ",
+    "vp,",
+    "head of",
+    "chief ",
+    "cto",
+    "cdo",
+    "svp",
+    "evp",
+    "intern",
+    "internship",
+    "new grad",
+    "product manager",
+    "program manager",
+    "data scientist",
+    "solutions architect",
+    "solutions engineer",
+    "technical account",
+    "field engineer",
+    "sales engineer",
+    "recruiter",
+    "devops engineer",
+    "frontend developer",
+    "frontend engineer",
+    "front-end developer",
+    "front-end engineer",
+    "full-stack developer",
+    "full stack developer",
+    "fullstack developer",
+    "backend developer",
+    "back-end developer",
+    "backend engineer",
+    "back-end engineer",
+    "rails engineer",
+    "react developer",
+    "react engineer",
+    "mobile engineer",
+    "mobile developer",
+    "ios engineer",
+    "android engineer",
+    "product designer",
+    "ux designer",
+    "ui designer",
+    "graphic designer",
+    "ai engineer",
+    "ml engineer",
+    "machine learning engineer",
+    "independent software developer",
+    "ai architect",
+    "cloud compute platform",
+    "cloud traffic"
+  ],
+  "rss_urls": [
+    "https://remotive.com/remote-jobs/feed?category=data",
+    "https://jobicy.com/?feed=job_feed&job_categories=data-science&job_types=full-time",
+    "https://weworkremotely.com/categories/remote-programming-jobs.rss"
+  ],
+  "portals": {
+    "linkedin": [
+      "https://www.linkedin.com/jobs/search/?keywords=Data%20Engineer&location=United%20States&f_WT=2&sortBy=DD",
+      "https://www.linkedin.com/jobs/search/?keywords=Senior%20Data%20Engineer&location=United%20States&f_WT=2&sortBy=DD",
+      "https://www.linkedin.com/jobs/search/?keywords=Analytics%20Engineer&location=United%20States&f_WT=2&sortBy=DD",
+      "https://www.linkedin.com/jobs/search/?keywords=Data%20Platform%20Engineer&location=United%20States&sortBy=DD",
+      "https://www.linkedin.com/jobs/search/?keywords=ETL%20Engineer&location=United%20States&sortBy=DD"
+    ],
+    "indeed": [
+      "https://www.indeed.com/jobs?q=data+engineer+sponsorship&l=United+States&sort=date",
+      "https://www.indeed.com/jobs?q=senior+data+engineer+h1b&l=United+States&sort=date",
+      "https://www.indeed.com/jobs?q=analytics+engineer&l=United+States&sort=date&sc=0kf%3Aattr(DSQF7)%3B",
+      "https://www.indeed.com/jobs?q=data+platform+engineer&l=United+States&sort=date"
+    ],
+    "dice": [
+      "https://www.dice.com/jobs?q=Data+Engineer&location=United+States&filters.employmentType=FULLTIME&filters.workplaceTypes=Remote&language=en",
+      "https://www.dice.com/jobs?q=Senior+Data+Engineer&location=United+States&filters.employmentType=FULLTIME&language=en",
+      "https://www.dice.com/jobs?q=Analytics+Engineer&location=United+States&filters.employmentType=FULLTIME&language=en",
+      "https://www.dice.com/jobs?q=Spark+ETL+Engineer&location=United+States&filters.employmentType=FULLTIME&language=en"
+    ],
+    "glassdoor": [
+      "https://www.glassdoor.com/Job/united-states-data-engineer-jobs-SRCH_IL.0,13_IN1_KO14,27.htm?sortBy=date_desc",
+      "https://www.glassdoor.com/Job/united-states-analytics-engineer-jobs-SRCH_IL.0,13_IN1_KO14,32.htm?sortBy=date_desc"
+    ],
+    "myvisajobs": [
+      "https://www.myvisajobs.com/Search-Visa-Sponsor.aspx?T=J&KW=Data+Engineer&L=United+States",
+      "https://www.myvisajobs.com/Search-Visa-Sponsor.aspx?T=J&KW=Analytics+Engineer&L=United+States"
+    ],
+    "builtin": [
+      "https://builtin.com/jobs/data-engineering?remote=true",
+      "https://builtin.com/jobs/data-engineering"
+    ],
+    "greenhouse": [],
+    "lever": [],
+    "workday": []
+  },
+  "ats_boards": [
+    {
+      "type": "greenhouse",
+      "slug": "databricks",
+      "company": "Databricks",
+      "keywords": ["data engineer", "staff data engineer", "principal data engineer", "analytics engineer", "data platform", "data infrastructure"],
+      "location_filter": ["united states", "remote, united states", "us remote", "remote - us", "remote: us", "california", "new york", "washington", "texas", "illinois", "colorado", "massachusetts", "georgia", "virginia", "north carolina", "new jersey", "florida"],
+      "limit": 10
+    },
+    {
+      "type": "ashby",
+      "slug": "confluent",
+      "company": "Confluent",
+      "keywords": ["kafka", "flink", "stream", "data platform", "connect", "governance", "tableflow"],
+      "location_filter": ["united states", "remote, united states", "us remote", "remote - us", "remote: us", "california", "new york", "washington", "texas", "illinois", "colorado", "massachusetts"],
+      "limit": 10
+    },
+    {
+      "type": "lever",
+      "slug": "palantir",
+      "company": "Palantir",
+      "keywords": ["data engineer", "data platform", "data infrastructure", "forward deployed engineer"],
+      "location_filter": ["united states", "remote, united states", "us remote", "remote - us", "remote: us", "new york", "washington", "california", "texas", "colorado"],
+      "limit": 10
+    },
+    {
+      "type": "greenhouse",
+      "slug": "stripe",
+      "company": "Stripe",
+      "keywords": ["data engineer", "staff data engineer", "analytics engineer", "data platform", "data infrastructure", "spark"],
+      "location_filter": ["united states", "remote", "us", "california", "new york", "washington", "texas"],
+      "limit": 10
+    },
+    {
+      "type": "greenhouse",
+      "slug": "airbnb",
+      "company": "Airbnb",
+      "keywords": ["data engineer", "staff data engineer", "analytics engineer", "data platform", "data infrastructure"],
+      "location_filter": ["united states", "remote", "us", "california", "new york", "washington"],
+      "limit": 10
+    },
+    {
+      "type": "greenhouse",
+      "slug": "lyft",
+      "company": "Lyft",
+      "keywords": ["data engineer", "staff data engineer", "analytics engineer", "data platform", "spark"],
+      "location_filter": ["united states", "remote", "us", "california", "new york", "washington"],
+      "limit": 10
+    },
+    {
+      "type": "greenhouse",
+      "slug": "fivetran",
+      "company": "Fivetran",
+      "keywords": ["data engineer", "staff data engineer", "analytics engineer", "data platform", "pipeline", "connector"],
+      "location_filter": ["united states", "remote", "us", "california", "new york", "washington"],
+      "limit": 10
+    },
+    {
+      "type": "greenhouse",
+      "slug": "robinhood",
+      "company": "Robinhood",
+      "keywords": ["data engineer", "staff data engineer", "analytics engineer", "data platform", "data infrastructure"],
+      "location_filter": ["united states", "remote", "us", "california", "new york", "washington"],
+      "limit": 10
+    },
+    {
+      "type": "greenhouse",
+      "slug": "dbtlabs",
+      "company": "dbt Labs",
+      "keywords": ["data engineer", "analytics engineer", "data platform", "data infrastructure", "software engineer"],
+      "location_filter": ["united states", "remote", "us"],
+      "limit": 10
+    },
+    {
+      "type": "greenhouse",
+      "slug": "plaid",
+      "company": "Plaid",
+      "keywords": ["data engineer", "staff data engineer", "analytics engineer", "data platform", "data infrastructure"],
+      "location_filter": ["united states", "remote", "us", "california", "new york", "washington"],
+      "limit": 10
+    },
+    {
+      "type": "greenhouse",
+      "slug": "affirm",
+      "company": "Affirm",
+      "keywords": ["data engineer", "staff data engineer", "analytics engineer", "data platform", "data infrastructure"],
+      "location_filter": ["united states", "remote", "us", "california", "new york", "washington"],
+      "limit": 10
+    },
+    {
+      "type": "greenhouse",
+      "slug": "coinbase",
+      "company": "Coinbase",
+      "keywords": ["data engineer", "staff data engineer", "analytics engineer", "data platform", "data infrastructure"],
+      "location_filter": ["united states", "remote", "us", "california", "new york", "washington"],
+      "limit": 10
+    },
+    {
+      "type": "greenhouse",
+      "slug": "brex",
+      "company": "Brex",
+      "keywords": ["data engineer", "staff data engineer", "analytics engineer", "data platform", "data infrastructure"],
+      "location_filter": ["united states", "remote", "us", "california", "new york", "washington"],
+      "limit": 10
+    },
+    {
+      "type": "greenhouse",
+      "slug": "block",
+      "company": "Block",
+      "keywords": ["data engineer", "staff data engineer", "analytics engineer", "data platform", "data infrastructure"],
+      "location_filter": ["united states", "remote", "us", "california", "new york", "washington"],
+      "limit": 10
+    }
+  ],
+  "workday_boards": [],
+  "smartrecruiters_boards": [],
+  "jsearch_queries": [
+    "Senior Staff Principal Data Engineer Spark Scala dbt remote H1B sponsorship United States",
+    "Microsoft Fabric Data Engineer DP-600 DP-700 Azure remote United States sponsorship",
+    "Azure Data Engineer Synapse ADF ADLS Databricks remote H1B sponsorship",
+    "GCP BigQuery Data Engineer cloud migration Airflow remote H1B sponsorship",
+    "AWS Data Engineer Glue Redshift EMR Kafka Spark remote H1B sponsorship United States",
+    "Healthcare Data Engineer HIPAA Teradata claims eligibility remote H1B sponsorship",
+    "Teradata Ab Initio ETL Data Warehouse modernization migration remote sponsorship",
+    "Data Platform Architect Engineer lakehouse Snowflake BigQuery remote H1B sponsorship",
+    "Analytics Engineer dbt BigQuery Snowflake Databricks Airflow remote H1B sponsorship",
+    "Fintech Banking Data Engineer Spark Python compliance regulatory remote H1B sponsorship"
+  ]
+}

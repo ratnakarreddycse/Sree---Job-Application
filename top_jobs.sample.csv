@@ -1,0 +1,5 @@
+company,role,status,score,action,reasons,notes
+Databricks,Senior Data Engineer,new,103,apply_now,Strong role-title match; Matched required keywords: 3/3; Matched preferred keywords: 3; Preferred location signal; Positive visa-support signal,Remote USA. H1B visa transfer supported. Python SQL ETL Spark Databricks AWS
+Acme Analytics,Analytics Engineer,new,79,apply_now,Strong role-title match; Matched required keywords: 2/3; Matched preferred keywords: 3; Preferred location signal,US remote. dbt Airflow SQL Python Snowflake
+Pipeline Labs,Data Platform Engineer,new,71,apply_now,Strong role-title match; Matched required keywords: 2/3; Matched preferred keywords: 3,Hybrid NYC. Kafka Spark ETL Python GCP
+Legacy Finance,Data Engineer,new,0,skip,Rejected: role appears to disallow visa sponsorship,No sponsorship available. US citizen only.
